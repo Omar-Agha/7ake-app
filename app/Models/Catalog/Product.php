@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Product extends Model
 {
-
+    use HasFactory;
     use \App\Traits\HasImages;
 
     /**
@@ -73,7 +73,7 @@ class Product extends Model
     public function inventories():HasManyThrough
     {
         return $this->hasManyThrough(
-            \App\Models\Inventory::class,
+            \App\Models\InventoryItem::class,
             \App\Models\Catalog\ProductVariant::class,
             'product_id', // Foreign key on ProductVariant table
             'product_variant_id', // Foreign key on Inventory table

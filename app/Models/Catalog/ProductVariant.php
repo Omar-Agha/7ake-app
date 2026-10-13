@@ -2,12 +2,15 @@
 
 namespace App\Models\Catalog;
 
-use App\Models\Inventory;
+
+use App\Models\InventoryItem;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ProductVariant extends Model
 {
+    use HasFactory;
     use \App\Traits\HasImages;
     /**
      * The attributes that are mass assignable.
@@ -32,6 +35,6 @@ class ProductVariant extends Model
      */
     public function inventory():HasOne
     {
-        return $this->hasOne(Inventory::class);
+        return $this->hasOne(InventoryItem::class);
     }
 }
