@@ -14,18 +14,16 @@ class InventoryItem extends Model
      */
     protected $fillable = [
         // Add your attributes here, for example:
-        'product_variant_id', 'on_hand_quantity','reserved_quantity'//, 'location'
+        'quantity','product_variant_id', 'on_hand_quantity','reserved_quantity'//, 'location'
     ];
     /**
-     * Get the available quantity for the inventory item.
+     * Get the available quantity (quantity - reserved_quantity).
      *
      * @return int
      */
     public function getAvailableQuantityAttribute(): int
     {
-        $quantity = $this->quantity ?? 0;
-        $reserved = $this->reserved_quantity ?? 0;
-        return max(0, $quantity - $reserved);
+        return (int) $this->quantity - (int) $this->reserved_quantity;
     }
 
     /**

@@ -14,7 +14,7 @@ class InventoryDomain
      * @param InventoryItem $inventoryItem
      * @param int $quantity
      * @param \DateTimeInterface $expiresAt
-     * @return \App\Models\Inventory\Reservation
+     * @return InventoryItem
      *
      * @throws \InvalidArgumentException
      */
@@ -22,31 +22,42 @@ class InventoryDomain
         InventoryItem $inventoryItem,
         int $quantity,
         \DateTimeInterface $expiresAt
-    ): \App\Models\Inventory\Reservation {
+    ): InventoryItem {
         if ($quantity < 1) {
             throw new \InvalidArgumentException('Reservation quantity must be at least 1.');
         }
 
-        $available = $inventoryItem->getAvailableQuantityAttribute();
+        $available = $inventoryItem->available_quantity;
 
         if ($quantity > $available) {
+
             throw new \InvalidArgumentException('Not enough inventory to reserve the requested quantity.');
         }
 
+
         return DB::transaction(function () use ($inventoryItem, $quantity, $expiresAt) {
-            $reservation = new \App\Models\Inventory\Reservation([
+            $affectedRows = InventoryItem::whereKey($inventoryItem->id)
+                ->whereRaw(
+                    'quantity - reserved_quantity >= ?',
+                    [$quantity]
+                )
+                ->increment('reserved_quantity', $quantity);
+
+            if ($affectedRows == 0) {
+                throw new \InvalidArgumentException('Not enough inventory to reserve the requested quantity.');
+            }
+
+            $inventoryItem = $inventoryItem->fresh();
+
+            $inventoryItem->reservations()->create([
                 'inventory_item_id' => $inventoryItem->id,
                 'quantity' => $quantity,
                 'reserved_at' => now(),
                 'expires_at' => $expiresAt,
                 'status' => \App\Enums\ReservationStatus::Active,
             ]);
-            $reservation->save();
-
-            $inventoryItem->reserved_quantity = ($inventoryItem->reserved_quantity ?? 0) + $quantity;
             $inventoryItem->save();
-
-            return $reservation;
+            return $inventoryItem;
         });
     }
 
@@ -60,24 +71,24 @@ class InventoryDomain
     {
         if (
             !($reservation->status === \App\Enums\ReservationStatus::Active &&
-            $reservation->expires_at &&
-            now()->greaterThanOrEqualTo($reservation->expires_at))
+                $reservation->expires_at &&
+                now()->greaterThanOrEqualTo($reservation->expires_at))
         ) {
             return false;
         }
-        
-        return DB::transaction(function()use($reservation){
+
+        return DB::transaction(function () use ($reservation) {
 
             $reservation->status = \App\Enums\ReservationStatus::Expired;
-                $reservation->save();
-    
-                // Reduce reserved inventory
-                $inventoryItem = $reservation->inventoryItem;
-                if ($inventoryItem) {
-                    $this->releaseReservation($inventoryItem->id,$reservation->quantity);
-                }
-    
-                return true;
+            $reservation->save();
+
+            // Reduce reserved inventory
+            $inventoryItem = $reservation->inventoryItem;
+            if ($inventoryItem) {
+                $this->releaseReservation($inventoryItem->id, $reservation->quantity);
+            }
+
+            return true;
         });
     }
 
@@ -92,13 +103,14 @@ class InventoryDomain
     {
         // Find an active reservation for the inventory item with the requested quantity
         $item = InventoryItem::find($inventoryItemId);
-        
-            if ($item) {
-                $item->reserved_quantity = max(0, $item->reserved_quantity  - $quantity);
-                $item->save();
-                return true;
-            }
-            return false;
+
+        if ($item) {
+            $item->decrement('reserved_quantity', $quantity);
+
+            $item->save();
+            return true;
+        }
+        return false;
     }
 
 
@@ -107,18 +119,27 @@ class InventoryDomain
         return \DB::transaction(function () use ($product_variant_id, $quantity, $reason) {
             $inventoryItem = InventoryItem::firstOrCreate(
                 ['product_variant_id' => $product_variant_id],
-                ['quantity' => 0, 'reserved_quantity' => 0]
             );
-
-            $newQuantity = $inventoryItem->quantity + $quantity;
-            if ($newQuantity < 0) {
+            if ($inventoryItem->available_quantity + $quantity < 0) {
                 throw new \DomainException('Inventory quantity cannot be negative.');
             }
 
             // Update the inventory item's quantity
-            $inventoryItem->quantity = $newQuantity;
-            $inventoryItem->save();
-    
+            
+            $affected =
+                InventoryItem::whereKey($inventoryItem->id)
+                ->whereRaw(
+                    'quantity - reserved_quantity + ? >= 0',
+                    [$quantity]
+                )
+                ->increment('quantity', $quantity);
+                
+
+            if ($affected == 0) {
+                throw new \DomainException('Inventory quantity cannot be negative.');
+            }
+
+            $inventoryItem->refresh();
 
             // Create a stock movement record
             \App\Models\Inventory\StockMovement::create([
@@ -130,8 +151,5 @@ class InventoryDomain
 
             return true;
         });
-
     }
-
-    
 }
