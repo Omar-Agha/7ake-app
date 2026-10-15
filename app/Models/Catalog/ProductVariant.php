@@ -2,8 +2,7 @@
 
 namespace App\Models\Catalog;
 
-
-use App\Models\InventoryItem;
+use App\Models\Inventory\InventoryItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
