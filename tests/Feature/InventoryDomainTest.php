@@ -370,7 +370,7 @@ describe('StockMovementTest', function () {
         // At this point inventory is 10, but itemProcess2 believes it's still 15
         // Process 2 decrements 3 due to Adjustment
         \DB::enableQueryLog();
-        
+
         $result2 = $domain->moveStock($itemProcess2->product_variant_id, -3, StockMovementReason::Adjustment);
         $queries = \DB::getQueryLog();
 
