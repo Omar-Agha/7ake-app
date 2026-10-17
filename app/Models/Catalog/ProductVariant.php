@@ -12,7 +12,7 @@ class ProductVariant extends Model
     use HasFactory;
     use \App\Traits\HasImages;
     /**
-     * The attributes that are mass assignable.
+     * The attributes that are mass assignable./////
      *
      * @var array<int, string>
      */
@@ -35,5 +35,13 @@ class ProductVariant extends Model
     public function inventory():HasOne
     {
         return $this->hasOne(InventoryItem::class);
+    }
+
+    /**
+     * Get the product that this variant belongs to.
+     */
+    public function product(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 }

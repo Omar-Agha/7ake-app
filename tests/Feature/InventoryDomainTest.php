@@ -123,7 +123,7 @@ describe('ReverseInventoryTest', function () {
 
         // Process 2 (with stale reserved_quantity) tries to reserve 10 units (should fail and throw exception)
         expect(fn() => $domain->reserveInventoryItem($itemProcess2, 10, $expiresAt))
-            ->toThrow(\InvalidArgumentException::class);
+            ->toThrow(\DomainException::class);
 
         $freshItem = InventoryItem::find($itemProcess1->id);
 

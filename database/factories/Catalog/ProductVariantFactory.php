@@ -19,11 +19,13 @@ class ProductVariantFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id' => Product::factory(),
-            'name' => $this->faker->name(),
-            'description' => $this->faker->sentence(),
-            'price' => $this->faker->randomFloat(2, 0, 100),
-            'stock' => $this->faker->numberBetween(0, 100),
+            
+            'name' => $this->faker->word(),
+            'price' => $this->faker->randomFloat(2, 1, 1000),
+            'sku' => strtoupper($this->faker->bothify('SKU-####??')),
+            'color' => $this->faker->safeColorName(),
+            'product_size' => $this->faker->randomElement(\App\Enums\ProductSize::cases()),
         ];
+   
     }
 }

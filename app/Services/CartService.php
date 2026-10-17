@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Core\Currents\CurrentCustomer;
-use App\Models\Cart;
-use App\Models\CartItem;
+use App\Core\Customer\CurrentCustomer;
+use App\Models\Cart\Cart;
+use App\Models\Cart\CartItem;
 use App\Models\Catalog\ProductVariant;
-use App\Models\Customer;
+use App\Models\Customer\Customer;
 use Illuminate\Support\Facades\DB;
 
 /**

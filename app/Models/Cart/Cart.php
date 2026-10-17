@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Cart;
 
 use App\Models\Catalog\ProductVariant;
+use App\Models\Customer\Customer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;

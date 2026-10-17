@@ -2,6 +2,7 @@
 
 namespace App\Models\Catalog;
 
+use App\Models\Inventory\InventoryItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -73,7 +74,7 @@ class Product extends Model
     public function inventories():HasManyThrough
     {
         return $this->hasManyThrough(
-            \App\Models\InventoryItem::class,
+            InventoryItem::class,
             \App\Models\Catalog\ProductVariant::class,
             'product_id', // Foreign key on ProductVariant table
             'product_variant_id', // Foreign key on Inventory table

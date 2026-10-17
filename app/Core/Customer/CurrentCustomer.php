@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Core\Currents;
+namespace App\Core\Customer;
 
-use App\Models\Customer;
+use App\Models\Customer\Customer;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 

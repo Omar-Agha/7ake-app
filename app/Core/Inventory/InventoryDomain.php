@@ -4,6 +4,7 @@ namespace App\Core\Inventory;
 
 use App\Enums\StockMovementReason;
 use App\Models\Inventory\InventoryItem;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class InventoryDomain
@@ -16,22 +17,40 @@ class InventoryDomain
      * @param \DateTimeInterface $expiresAt
      * @return InventoryItem
      *
-     * @throws \InvalidArgumentException
+     * @throws \DomainException
+     */
+    public function reserveProductVariant(int $product_variant_id, int $quantity): InventoryItem
+    {
+        $inventoryItem = InventoryItem::where('product_variant_id', $product_variant_id)->first();
+        return $this->reserveInventoryItem($inventoryItem, $quantity, Carbon::now()->addHour());
+    }
+    /**
+     * Reserve a quantity of an inventory item.
+     *
+     * @param InventoryItem $inventoryItem
+     * @param int $quantity
+     * @param \DateTimeInterface $expiresAt
+     * @return InventoryItem
+     *
+     * @throws \DomainException
      */
     public function reserveInventoryItem(
-        InventoryItem $inventoryItem,
+        ?InventoryItem $inventoryItem,
         int $quantity,
         \DateTimeInterface $expiresAt
     ): InventoryItem {
         if ($quantity < 1) {
-            throw new \InvalidArgumentException('Reservation quantity must be at least 1.');
+            throw new \DomainException('Reservation quantity must be at least 1.');
         }
+        if (!$inventoryItem) {
+            throw new \DomainException('Not enough inventory to reserve the requested quantity.');
 
+        }
         $available = $inventoryItem->available_quantity;
 
         if ($quantity > $available) {
 
-            throw new \InvalidArgumentException('Not enough inventory to reserve the requested quantity.');
+            throw new \DomainException('Not enough inventory to reserve the requested quantity.');
         }
 
 
@@ -44,7 +63,7 @@ class InventoryDomain
                 ->increment('reserved_quantity', $quantity);
 
             if ($affectedRows == 0) {
-                throw new \InvalidArgumentException('Not enough inventory to reserve the requested quantity.');
+                throw new \DomainException('Not enough inventory to reserve the requested quantity.');
             }
 
             $inventoryItem = $inventoryItem->fresh();
@@ -125,7 +144,7 @@ class InventoryDomain
             }
 
             // Update the inventory item's quantity
-            
+
             $affected =
                 InventoryItem::whereKey($inventoryItem->id)
                 ->whereRaw(
@@ -133,7 +152,7 @@ class InventoryDomain
                     [$quantity]
                 )
                 ->increment('quantity', $quantity);
-                
+
 
             if ($affected == 0) {
                 throw new \DomainException('Inventory quantity cannot be negative.');

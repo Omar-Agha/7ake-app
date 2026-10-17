@@ -14,7 +14,7 @@ class InventoryItem extends Model
      */
     protected $fillable = [
         // Add your attributes here, for example:
-        'quantity','product_variant_id', 'on_hand_quantity','reserved_quantity'//, 'location'
+        'quantity','product_variant_id','reserved_quantity'//, 'location'
     ];
     /**
      * Get the available quantity (quantity - reserved_quantity).

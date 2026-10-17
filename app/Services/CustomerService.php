@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Http\Requests\CustomerAddressSaveRequest;
 use App\Http\Requests\CustomerSaveRequest;
-use App\Models\Customer;
-use App\Models\CustomerAddress;
+use App\Models\Customer\Customer;
+use App\Models\Customer\CustomerAddress;
 use Auth;
 
 class CustomerService
@@ -14,9 +14,9 @@ class CustomerService
      * Create a new customer.
      *
      * @param \App\Http\Requests\CustomerSaveRequest $request
-     * @return \App\Models\Customer
+     * @return \App\Models\Customer\Customer
      */
-    public function create(CustomerSaveRequest $request): \App\Models\Customer
+    public function create(CustomerSaveRequest $request): \App\Models\Customer\Customer
     {
         $data = $request->validated();
 
@@ -29,17 +29,17 @@ class CustomerService
             $data['avatar'] = $uploader->uploadFile($request->file('avatar'), 'avatars');
         }
 
-        return \App\Models\Customer::create($data);
+        return \App\Models\Customer\Customer::create($data);
     }
 
     /**
      * Update the given customer.
      *
      * @param \App\Http\Requests\CustomerSaveRequest $request
-     * @param \App\Models\Customer $customer
-     * @return \App\Models\Customer
+     * @param \App\Models\Customer\Customer $customer
+     * @return \App\Models\Customer\Customer
      */
-    public function update(CustomerSaveRequest $request, Customer $customer): \App\Models\Customer
+    public function update(CustomerSaveRequest $request, Customer $customer): \App\Models\Customer\Customer
     {
         $data = $request->validated();
 
@@ -57,9 +57,9 @@ class CustomerService
     /**
      * Attach a new address to the given customer.
      *
-     * @param \App\Models\Customer $customer
+     * @param \App\Models\Customer\Customer $customer
      * @param \App\Http\Requests\CustomerAddressSaveRequest $request
-     * @return \App\Models\CustomerAddress
+     * @return \App\Models\Customer\CustomerAddress
      */
     public function attachAddress(Customer $customer, CustomerAddressSaveRequest $request): CustomerAddress
     {
@@ -70,9 +70,9 @@ class CustomerService
     /**
      * Update the given address for a customer.
      *
-     * @param \App\Models\CustomerAddress $address
+     * @param \App\Models\Customer\CustomerAddress $address
      * @param \App\Http\Requests\CustomerAddressSaveRequest $request
-     * @return \App\Models\CustomerAddress
+     * @return \App\Models\Customer\CustomerAddress
      */
     public function updateAddress(CustomerAddress $address, CustomerAddressSaveRequest $request): CustomerAddress
     {
@@ -84,7 +84,7 @@ class CustomerService
     /**
      * Delete the given address for a customer.
      *
-     * @param \App\Models\CustomerAddress $address
+     * @param \App\Models\Customer\CustomerAddress $address
      * @return bool|null
      */
     public function deleteAddress(CustomerAddress $address): ?bool
