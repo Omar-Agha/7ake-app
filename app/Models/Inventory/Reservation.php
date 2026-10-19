@@ -5,6 +5,7 @@ namespace App\Models\Inventory;
 use App\Enums\ReservationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reservation extends Model
 {
@@ -21,8 +22,18 @@ class Reservation extends Model
         'reserved_at',
         'expires_at',
         'status',
+        'order_item_id'
     ];
 
+    /**
+     * Get the order item that owns the reservation.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function orderItem()
+    {
+        return $this->belongsTo(\App\Models\Order\OrderItem::class, 'order_item_id');
+    }
    
     /**
      * The attributes that should be cast.
@@ -35,12 +46,8 @@ class Reservation extends Model
         'status'=> ReservationStatus::class
     ];
 
-    /**
-     * Get the inventory item associated with the reservation.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function inventoryItem()
+    
+    public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class);
     }

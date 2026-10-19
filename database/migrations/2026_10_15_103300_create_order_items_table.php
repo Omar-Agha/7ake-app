@@ -24,6 +24,7 @@ return new class extends Migration
             $table->decimal('total', 15, 2)->default(0);
             $table->string('sku')->nullable();
             $table->string('currency', 3)->default('USD');
+            
    
         });
     }

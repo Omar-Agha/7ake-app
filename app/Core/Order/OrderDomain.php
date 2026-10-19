@@ -16,10 +16,10 @@ use App\Models\Order\OrderStatus;
 use App\Models\Order\PaymentMethod;
 use App\Models\Order\PaymentStatus;
 
-class OrderManager
+class OrderDomain
 {
     /**
-     * OrderManager constructor.
+     * OrderDomain constructor.
      */
     public function __construct(
         protected CurrentCustomer $currentCustomer,
@@ -53,9 +53,7 @@ class OrderManager
         $order_no = "3";
         return \DB::transaction(function () use ($data, $order_no, $shipment_amount, $discount_amount, $orderItems, $customer_address) {
 
-            foreach ($orderItems as  $value) {
-                $this->inventoryDomain->reserveProductVariant($value->product_variant_id, $value->quantity);
-            }
+            
 
             [$order, $items] = Order::placeNewOrder(
                 $this->currentCustomer->get()->id,
@@ -66,6 +64,11 @@ class OrderManager
                 $discount_amount,
                 $orderItems
             );
+
+            foreach ($items as  $value) {
+                $this->inventoryDomain->reserveForOrderItem($value->product, $value->quantity,$value->id);
+            }
+
             $order->save();
             $order->orderItems()->saveMany($items);
             event(new OrderPlaced($order));
@@ -74,15 +77,4 @@ class OrderManager
     }
 
 
-    /**
-     * Cancel an order.
-     *
-     * @param \App\Models\Order\Order $order
-     * @return bool
-     */
-    public function cancelOrder(Order $order): bool
-    {
-        $order->status = OrderStatus::CANCELLED;
-        return $order->save();
-    }
 }

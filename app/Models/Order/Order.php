@@ -5,13 +5,20 @@ namespace App\Models\Order;
 use App\Models\Catalog\ProductVariant;
 use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerAddress;
+use App\Models\Inventory\Reservation;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Ramsey\Collection\Collection;
 
 class Order extends Model
 {
+
+    use HasFactory;
     /**
      * The attributes that are mass assignable.
      *
@@ -75,6 +82,25 @@ class Order extends Model
     }
 
     /**
+     * Get the reservations associated with the order via its order items.
+     */
+    /**
+     * Get all reservations associated with the order through its order items.
+     */
+    public function reservations():HasManyThrough
+    {
+        //  SQL: select "id" from "reservations" inner join "order_items" on "order_items"."id" = "reservations"."order_item_id" where "order_items"."order_id" = 1)
+        return $this->hasManyThrough(
+            Reservation::class,
+            \App\Models\Order\OrderItem::class,
+            'order_id',           // Foreign key on OrderItem table...
+            'order_item_id',      // Foreign key on Reservation table...
+            'id',                 // Local key on Order table...
+            'id'                  // Local key on OrderItem table...
+        );
+    }
+
+    /**
      * Create a new Order instance.
      *
      * @param array $attributes
@@ -111,14 +137,36 @@ class Order extends Model
             'sub_total' => $sub_total,
             'shipping_address' => $customerAddress->toArray(),
             'total_amount' => $sub_total + $shipping_amount - $discount_amount,
-            
+
         ];
         $order = static::make($attributes);
-        // $order->setRelation('orderItems', collect($orderItems));
-        // $order->orderItems()->saveMany($orderItems);
-        
-       
 
         return [$order, $orderItems];
+    }
+
+    /**
+     * Cancel the order and update related reservations.
+     *
+     * @return void
+     */
+    public function cancel(\DateTimeInterface $cancelledAt): void
+    {
+        $this->status = OrderStatus::CANCELLED;
+        $this->cancelled_at = $cancelledAt;
+    }
+    public function confirm(\DateTimeInterface $confirmedAt): void
+    {
+        $this->status = OrderStatus::CONFIRMED;
+        $this->confirmed_at = $confirmedAt;
+    }
+    public function shipping(\DateTimeInterface $shipping_at): void
+    {
+        $this->status = OrderStatus::SHIPPED;
+        $this->shipping_at = $shipping_at;
+    }
+    public function deliver(\DateTimeInterface $delivered_at): void
+    {
+        $this->status = OrderStatus::SHIPPED;
+        $this->delivered_at = $delivered_at;
     }
 }

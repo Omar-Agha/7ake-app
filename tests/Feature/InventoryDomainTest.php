@@ -170,11 +170,9 @@ describe('ReservationExpirationTest', function () {
         expect($result)->toBeTrue();
 
         // The reservation status is updated
-        $reservation->refresh();
-        expect($reservation->status)->toBe(ReservationStatus::Expired);
 
-        // The reserved quantity is decreased
         $item->refresh();
+        expect($item->reservations()->count())->toBe(0);
         expect($item->reserved_quantity)->toBe(0);
     });
 
@@ -257,8 +255,8 @@ describe('ReservationExpirationTest', function () {
         expect($resultB)->toBeTrue();
 
         // Both reservation statuses are updated
-        expect($reservation1->fresh()->status)->toBe(ReservationStatus::Expired);
-        expect($reservation2->fresh()->status)->toBe(ReservationStatus::Expired);
+        expect($item->fresh()->reservations()->count())->toBe(0);
+
 
         // The reserved quantity should be properly reduced by both (never go below zero, and no lost update)
         $item->refresh();
@@ -390,4 +388,72 @@ describe('StockMovementTest', function () {
         expect($movements[1]->reason)->toBe(StockMovementReason::Adjustment);
     });
 
+    it('commits a reservation and decrements quantity', function () {
+        $domain = new \App\Core\Inventory\InventoryDomain();
+        $productVariant = createProductWithVariant();
+
+        $inventoryItem = \App\Models\Inventory\InventoryItem::create([
+            'product_variant_id' => $productVariant->id,
+            'quantity' => 10,
+            'reserved_quantity' => 0,
+        ]);
+
+        // Reserve 4 units
+        $reservation = $inventoryItem->reservations()->create([
+            'inventory_item_id' => $inventoryItem->id,
+            'quantity' => 4,
+            'reserved_at' => now(),
+            'expires_at' => now()->addHour(),
+            'status' => \App\Enums\ReservationStatus::Active,
+        ]);
+        // Synchronize reserved_quantity
+        $inventoryItem->reserved_quantity = 4;
+        $inventoryItem->save();
+
+        // Act - commit the reservation
+        $result = $domain->commitReservation($reservation);
+
+        expect($result)->toBeTrue();
+
+        $inventoryItem->refresh();
+        expect($inventoryItem->quantity)->toBe(6);
+        expect($inventoryItem->reserved_quantity)->toBe(0);
+
+        $reservationExists = \App\Models\Inventory\Reservation::find($reservation->id);
+        expect($reservationExists)->toBeNull();
+    });
+    it('cancels a reservation and decrements reserved_quantity', function () {
+        $domain = new \App\Core\Inventory\InventoryDomain();
+        $productVariant = createProductWithVariant();
+
+        $inventoryItem = \App\Models\Inventory\InventoryItem::create([
+            'product_variant_id' => $productVariant->id,
+            'quantity' => 15,
+            'reserved_quantity' => 0,
+        ]);
+
+        // Reserve 5 units
+        $reservation = $inventoryItem->reservations()->create([
+            'inventory_item_id' => $inventoryItem->id,
+            'quantity' => 5,
+            'reserved_at' => now(),
+            'expires_at' => now()->addHour(),
+            'status' => \App\Enums\ReservationStatus::Active,
+        ]);
+        // Synchronize reserved_quantity
+        $inventoryItem->reserved_quantity = 5;
+        $inventoryItem->save();
+
+        // Act - cancel the reservation
+        $result = $domain->cancelReservation($reservation);
+
+        expect($result)->toBeTrue();
+
+        $inventoryItem->refresh();
+        expect($inventoryItem->quantity)->toBe(15);
+        expect($inventoryItem->reserved_quantity)->toBe(0);
+
+        $reservationExists = \App\Models\Inventory\Reservation::find($reservation->id);
+        expect($reservationExists)->toBeNull();
+    });
 });

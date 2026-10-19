@@ -6,7 +6,7 @@ use App\Core\FeeCalculator\ShipmentFeeCalculator;
 use App\Core\Inventory\InventoryDomain;
 use App\Models\Catalog\Product;
 use App\Models\Customer\Customer;
-use App\Core\Order\OrderManager;
+use App\Core\Order\OrderDomain;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Models\Catalog\ProductVariant;
 use App\Models\Customer\CustomerAddress;
@@ -78,11 +78,11 @@ it('creates an order successfully with valid data', function () {
 
 
 
-    $orderManager = app(OrderManager::class);
+    $OrderDomain = app(OrderDomain::class);
 
 
     \DB::enableQueryLog();
-    $order = $orderManager->createOrder($requestData);
+    $order = $OrderDomain->createOrder($requestData);
     $x = \DB::getQueryLog();
     expect($order)
         ->toBeInstanceOf(Order::class)
@@ -107,7 +107,7 @@ it('creates an order from 3 different products and 5 product variants', function
             ->andReturn($customer);
     });
 
-    $orderManager = app(OrderManager::class);
+    $OrderDomain = app(OrderDomain::class);
 
     $products = createProducts(10,1, new Sequence(['quantity' => 99, 'reserved_quantity' => 0]));
 
@@ -138,7 +138,7 @@ it('creates an order from 3 different products and 5 product variants', function
 
 
     
-    $order = $orderManager->createOrder($requestData);
+    $order = $OrderDomain->createOrder($requestData);
 
     expect($order)
         ->toBeInstanceOf(Order::class)
@@ -165,7 +165,7 @@ it('throw exception when no inventory available', function () {
     
 
 
-    $orderManager = app(OrderManager::class);
+    $OrderDomain = app(OrderDomain::class);
 
     $products = createProducts(10,2, new Sequence(
         ['quantity' => 5, 'reserved_quantity' => 0],
@@ -199,7 +199,7 @@ it('throw exception when no inventory available', function () {
 
 
 
-    expect(fn() => $orderManager->createOrder($requestData))
+    expect(fn() => $OrderDomain->createOrder($requestData))
     ->toThrow(DomainException::class);
 });
 
@@ -222,7 +222,7 @@ it('check amount & fee values to be valid', function () {
             ->andReturn(10);
     });
 
-    $orderManager = app(OrderManager::class);
+    $OrderDomain = app(OrderDomain::class);
 
     $products = createProducts(10, 1, new Sequence(['quantity' => 99, 'reserved_quantity' => 0]));
     $productVariants = $products->flatMap(function ($product) {
@@ -245,7 +245,7 @@ it('check amount & fee values to be valid', function () {
         'payment_method' => PaymentMethod::COD->value,
     ];
 
-    $order = $orderManager->createOrder($requestData);
+    $order = $OrderDomain->createOrder($requestData);
 
     // Check the order amounts
     $expectedSubtotal = collect($orderItems)->reduce(function ($carry, $item) use ($productVariants) {

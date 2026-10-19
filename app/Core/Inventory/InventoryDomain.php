@@ -4,6 +4,8 @@ namespace App\Core\Inventory;
 
 use App\Enums\StockMovementReason;
 use App\Models\Inventory\InventoryItem;
+use App\Models\Inventory\Reservation;
+use App\Models\Inventory\StockMovement;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -19,10 +21,10 @@ class InventoryDomain
      *
      * @throws \DomainException
      */
-    public function reserveProductVariant(int $product_variant_id, int $quantity): InventoryItem
+    public function reserveForOrderItem(int $product_variant_id, int $quantity, int $order_item_id): InventoryItem
     {
         $inventoryItem = InventoryItem::where('product_variant_id', $product_variant_id)->first();
-        return $this->reserveInventoryItem($inventoryItem, $quantity, Carbon::now()->addHour());
+        return $this->reserveInventoryItem($inventoryItem, $quantity, Carbon::now()->addHour(), $order_item_id);
     }
     /**
      * Reserve a quantity of an inventory item.
@@ -37,14 +39,16 @@ class InventoryDomain
     public function reserveInventoryItem(
         ?InventoryItem $inventoryItem,
         int $quantity,
-        \DateTimeInterface $expiresAt
+        \DateTimeInterface $expiresAt,
+        ?int $order_item_id = null
+
     ): InventoryItem {
+
         if ($quantity < 1) {
             throw new \DomainException('Reservation quantity must be at least 1.');
         }
         if (!$inventoryItem) {
             throw new \DomainException('Not enough inventory to reserve the requested quantity.');
-
         }
         $available = $inventoryItem->available_quantity;
 
@@ -54,7 +58,7 @@ class InventoryDomain
         }
 
 
-        return DB::transaction(function () use ($inventoryItem, $quantity, $expiresAt) {
+        return DB::transaction(function () use ($inventoryItem, $quantity, $expiresAt, $order_item_id) {
             $affectedRows = InventoryItem::whereKey($inventoryItem->id)
                 ->whereRaw(
                     'quantity - reserved_quantity >= ?',
@@ -74,6 +78,7 @@ class InventoryDomain
                 'reserved_at' => now(),
                 'expires_at' => $expiresAt,
                 'status' => \App\Enums\ReservationStatus::Active,
+                'order_item_id' => $order_item_id,
             ]);
             $inventoryItem->save();
             return $inventoryItem;
@@ -100,13 +105,7 @@ class InventoryDomain
 
             $reservation->status = \App\Enums\ReservationStatus::Expired;
             $reservation->save();
-
-            // Reduce reserved inventory
-            $inventoryItem = $reservation->inventoryItem;
-            if ($inventoryItem) {
-                $this->releaseReservation($inventoryItem->id, $reservation->quantity);
-            }
-
+            $this->releaseReservation($reservation);
             return true;
         });
     }
@@ -118,20 +117,55 @@ class InventoryDomain
      * @param int $quantity
      * @return bool True if a reservation was released, false otherwise.
      */
-    public function releaseReservation(int $inventoryItemId, int $quantity): bool
+    public function releaseReservation(Reservation $reservation): bool
     {
         // Find an active reservation for the inventory item with the requested quantity
-        $item = InventoryItem::find($inventoryItemId);
+        $item = $reservation->inventoryItem;
 
-        if ($item) {
-            $item->decrement('reserved_quantity', $quantity);
 
-            $item->save();
-            return true;
-        }
-        return false;
+        $item->decrement('reserved_quantity', $reservation->quantity);
+        $item->save();
+        $reservation->delete();
+
+        return true;
     }
 
+
+    public function cancelReservation(Reservation $reservation): bool
+    {
+        return $this->releaseReservation($reservation);
+    }
+
+    public function commitReservation(Reservation $reservation): bool
+    {
+        $quantity = $reservation->quantity;
+        $this->releaseReservation($reservation);
+        $reservation->inventoryItem->decrement('quantity', $quantity);
+        return true;
+    }
+
+    /**
+     * Create sale movement records for an array of inventory item IDs.
+     *
+     * @param int[] $inventoryItemIds
+     * @return void
+     */
+    public function createSaleMovement(array $items): void
+    {
+        $rows = [];
+        foreach ($items as $item) {
+            $rows[] = [
+                'inventory_item_id' => $item['product_v_id'],
+                'quantity' => $item['quantity'],
+                'reason' => StockMovementReason::Sale,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        if (!empty($rows)) {
+            StockMovement::insert($rows);
+        }
+    }
 
     public function moveStock(int $product_variant_id, int $quantity, StockMovementReason $reason): bool
     {

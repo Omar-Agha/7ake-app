@@ -2,6 +2,7 @@
 
 
 use App\Models\Inventory\InventoryItem;
+use App\Models\Order\OrderItem;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,12 +18,12 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignIdFor(InventoryItem::class)->constrained()->onDelete('cascade');
-       
+
             $table->unsignedInteger('quantity');
             $table->timestamp('reserved_at');
             $table->timestamp('expires_at')->nullable();
             $table->string('status');
-   
+            $table->foreignIdFor(OrderItem::class)->nullable()->constrained()->nullOnDelete();
         });
     }
 
