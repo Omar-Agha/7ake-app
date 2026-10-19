@@ -66,23 +66,7 @@ class Product extends Model
             ->with('inventory');
     }
 
-    /**
-     * Get all product variants' inventories for the product.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
-     */
-    public function inventories():HasManyThrough
-    {
-        return $this->hasManyThrough(
-            InventoryItem::class,
-            \App\Models\Catalog\ProductVariant::class,
-            'product_id', // Foreign key on ProductVariant table
-            'product_variant_id', // Foreign key on Inventory table
-            'id', // Local key on Product table
-            'id' // Local key on ProductVariant table
-        );
-    }
-
+   
     /**
      * Mark the product as the given status.
      *

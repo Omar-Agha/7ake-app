@@ -81,23 +81,17 @@ class Order extends Model
         )->with('product');
     }
 
-    /**
-     * Get the reservations associated with the order via its order items.
-     */
-    /**
-     * Get all reservations associated with the order through its order items.
-     */
-    public function reservations():HasManyThrough
+   
+    public function reservations(): HasManyThrough
     {
-        //  SQL: select "id" from "reservations" inner join "order_items" on "order_items"."id" = "reservations"."order_item_id" where "order_items"."order_id" = 1)
         return $this->hasManyThrough(
             Reservation::class,
-            \App\Models\Order\OrderItem::class,
-            'order_id',           // Foreign key on OrderItem table...
-            'order_item_id',      // Foreign key on Reservation table...
-            'id',                 // Local key on Order table...
-            'id'                  // Local key on OrderItem table...
-        );
+            OrderItem::class,
+            'order_id',        // Foreign key on OrderItem (intermediate)...
+            'order_item_id',   // Foreign key on Reservation (related)...
+            'id',              // Local key on Order (parent)...
+            'id'               // Local key on OrderItem (intermediate)...
+        )->select('reservations.*'); // Avoid ambiguous "id" columns
     }
 
     /**

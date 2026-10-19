@@ -65,12 +65,12 @@ class OrderDomain
                 $orderItems
             );
 
-            foreach ($items as  $value) {
-                $this->inventoryDomain->reserveForOrderItem($value->product, $value->quantity,$value->id);
-            }
-
             $order->save();
             $order->orderItems()->saveMany($items);
+            foreach ($items as  $value) {
+                $this->inventoryDomain->reserveForOrderItem($value->product_variant_id, $value->quantity,$value->id);
+            }
+
             event(new OrderPlaced($order));
             return $order;
         });

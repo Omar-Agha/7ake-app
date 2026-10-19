@@ -21,7 +21,7 @@ use App\Events\OrderPlaced;
 use App\Models\Inventory\InventoryItem;
 use Database\Factories\Inventory\InventoryItemFactory;
 
-function createProducts(int $count,int $product_v_count, Sequence $sequence)
+function createProducts(int $count, int $product_v_count, Sequence $sequence)
 {
     return  Product::factory($count)
         ->has(
@@ -56,7 +56,7 @@ it('creates an order successfully with valid data', function () {
             ->andReturn($customer);
     });
 
-    $product = createProducts(1,1, new Sequence(['quantity' => 2, 'reserved_quantity' => 0]));
+    $product = createProducts(1, 1, new Sequence(['quantity' => 2, 'reserved_quantity' => 0]));
 
 
     /** @var ProductVariant $productVariant */
@@ -109,7 +109,7 @@ it('creates an order from 3 different products and 5 product variants', function
 
     $OrderDomain = app(OrderDomain::class);
 
-    $products = createProducts(10,1, new Sequence(['quantity' => 99, 'reserved_quantity' => 0]));
+    $products = createProducts(10, 1, new Sequence(['quantity' => 99, 'reserved_quantity' => 0]));
 
 
 
@@ -137,7 +137,7 @@ it('creates an order from 3 different products and 5 product variants', function
 
 
 
-    
+
     $order = $OrderDomain->createOrder($requestData);
 
     expect($order)
@@ -162,15 +162,15 @@ it('throw exception when no inventory available', function () {
         $mock->shouldReceive('get')
             ->andReturn($customer);
     });
-    
+
 
 
     $OrderDomain = app(OrderDomain::class);
 
-    $products = createProducts(10,2, new Sequence(
+    $products = createProducts(10, 2, new Sequence(
         ['quantity' => 5, 'reserved_quantity' => 0],
         ['quantity' => 1, 'reserved_quantity' => 0]
-        ));
+    ));
 
 
 
@@ -200,7 +200,7 @@ it('throw exception when no inventory available', function () {
 
 
     expect(fn() => $OrderDomain->createOrder($requestData))
-    ->toThrow(DomainException::class);
+        ->toThrow(DomainException::class);
 });
 
 it('check amount & fee values to be valid', function () {
@@ -257,8 +257,49 @@ it('check amount & fee values to be valid', function () {
     expect($order->discount_amount)->toBeFloat()->toBe(30.0);
     expect($order->shipping_amount)->toBeFloat()->toBe(10.0);
     expect($order->total_amount)->toBeFloat()->toBe($expectedSubtotal + 10.0 - 30.0);
+});
+
+it('check reservations are created with order', function () {
+    Event::fake([OrderPlaced::class]);
+    [$user, $customer, $address] = setup();
+
+    $this->mock(CurrentCustomer::class, function ($mock) use ($customer) {
+        $mock->shouldReceive('get')
+            ->andReturn($customer);
+    });
+
+    $product = createProducts(1, 1, new Sequence(['quantity' => 2, 'reserved_quantity' => 0]));
+
+
+    /** @var ProductVariant $productVariant */
+    $productVariant = $product->first()->productVariants()->first();
+
+    // Prepare request data
+    $orderItems = [
+        [
+            'product_variant_id' => $productVariant->id,
+            'quantity' => 2,
+        ],
+    ];
+
+    $requestData = [
+        'address_id' => $address->id,
+        'order_items' => $orderItems,
+        'payment_method' => PaymentMethod::COD->value,
+    ];
 
 
 
-    
+    $OrderDomain = app(OrderDomain::class);
+    $order = $OrderDomain->createOrder($requestData);
+
+    $createdOrder = Order::with('reservations')->find($order->id);
+
+    expect($createdOrder->reservations)->not->toBeNull()->not->toBeEmpty();
+    expect($createdOrder->reservations)->toHaveCount(1);
+
+    // Optionally, check the reservation fields
+    $reservation = $createdOrder->reservations->first();
+    expect($reservation->order_item_id)->toBe($createdOrder->orderItems->first()->id);
+    expect($reservation->quantity)->toBe(2);
 });

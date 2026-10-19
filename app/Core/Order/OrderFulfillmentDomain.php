@@ -6,7 +6,7 @@ use App\Core\Inventory\InventoryDomain;
 use App\Events\OrderWasCancelled;
 use App\Events\OrderWasConfirmed;
 use App\Events\OrderWasDelivered;
-use App\Events\OrderWasShip;
+use App\Events\OrderWasShipped;
 use App\Models\Order\Order;
 use App\Models\Order\OrderStatus;
 use Carbon\Carbon;
@@ -69,7 +69,7 @@ class OrderFulfillmentDomain
             $this->inventoryDomain->createSaleMovement($items);
             $order->save();
         });
-        event(new OrderWasShip($order));
+        event(new OrderWasShipped($order));
 
     }
     public function deliverOrder(Order $order): void {
