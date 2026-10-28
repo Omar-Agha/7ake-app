@@ -2,21 +2,17 @@
 
 namespace App\Filament\Resources\Catalog\Products;
 
-use App\Enums\PublishStatus;
-use App\Filament\Resources\Catalog\Products\Pages\ManageProducts;
+use App\Filament\Resources\Catalog\Products\Pages\CreateProduct;
+use App\Filament\Resources\Catalog\Products\Pages\EditProduct;
+use App\Filament\Resources\Catalog\Products\Pages\ListProducts;
+use App\Filament\Resources\Catalog\Products\RelationManagers\VariantsRelationManager;
+use App\Filament\Resources\Catalog\Products\Schemas\ProductForm;
+use App\Filament\Resources\Catalog\Products\Tables\ProductsTable;
 use App\Models\Catalog\Product;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ProductResource extends Resource
@@ -29,62 +25,27 @@ class ProductResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                TextInput::make('name')
-                    ->required(),
-                Textarea::make('description')
-                    ->columnSpanFull(),
-                Select::make('product_status')
-                    ->options(PublishStatus::class)
-                    ->default(PublishStatus::Draft)
-                    ->disabled()
-                    ->required(),
-                Select::make('category_id')
-                    ->relationship('category', 'name'),
-            ]);
+        return ProductForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->recordTitleAttribute('name')
-            ->columns([
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('product_status')
-                    ->badge()
-                    // ->numeric()
-                    ->sortable(),
-                TextColumn::make('category.name')
-                    ->searchable(),
-            ])
-            ->filters([
-                //
-            ])
-            ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+        return ProductsTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            VariantsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ManageProducts::route('/'),
+            'index' => ListProducts::route('/'),
+            'create' => CreateProduct::route('/create'),
+            'edit' => EditProduct::route('/{record}/edit'),
         ];
     }
 }

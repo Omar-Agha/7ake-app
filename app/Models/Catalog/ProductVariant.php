@@ -5,6 +5,7 @@ namespace App\Models\Catalog;
 use App\Models\Inventory\InventoryItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ProductVariant extends Model
@@ -18,7 +19,7 @@ class ProductVariant extends Model
      */
     protected $fillable = [
         
-        'product_id', 'name', 'price', 'sku','color','product_size'
+        'product_id', 'name', 'price', 'sku','product_size','color_id'
     ];
     /**
      * The attributes that should be cast.
@@ -43,5 +44,9 @@ class ProductVariant extends Model
     public function product(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function color():BelongsTo{
+        return $this->belongsTo(Color::class);
     }
 }
