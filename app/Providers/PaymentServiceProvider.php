@@ -11,7 +11,7 @@ class PaymentServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        
     }
 
     /**

@@ -351,7 +351,7 @@ namespace App\Models\Order{
  * @property string|null $shipping_at
  * @property string|null $delivered_at
  * @property \App\Models\Order\OrderStatus $status
- * @property \App\Models\Order\PaymentStatus $payment_status
+ * @property \App\Models\Order\OrderPaymentStatus $payment_status
  * @property \App\Models\Order\PaymentMethod $payment_method
  * @property-read \App\Models\Customer\Customer|null $customer
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order\OrderItem> $orderItems

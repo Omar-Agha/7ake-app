@@ -14,7 +14,7 @@ use App\Models\Customer\CustomerAddress;
 use App\Models\Order\Order;
 use App\Models\Order\OrderStatus;
 use App\Models\Order\PaymentMethod;
-use App\Models\Order\PaymentStatus;
+
 
 class OrderDomain
 {
@@ -25,13 +25,14 @@ class OrderDomain
         protected CurrentCustomer $currentCustomer,
         protected InventoryDomain $inventoryDomain,
         protected CustomerDiscountCalculator $customerDiscountCalculator,
-        protected ShipmentFeeCalculator $shipmentFeeCalculator
+        protected ShipmentFeeCalculator $shipmentFeeCalculator,
+        protected OrderNoGenerator $orderNoGenerator
     ) {
         // No dependencies to inject at the moment.
     }
     public function createOrder(array $data): Order
     {
-        
+
 
         $customer_address = CustomerAddress::find($data['address_id']);
 
@@ -48,12 +49,12 @@ class OrderDomain
             ]);
         });
 
-        $discount_amount = $this->customerDiscountCalculator->calculate($this->currentCustomer->get(),$orderItems);
-        $shipment_amount = $this->shipmentFeeCalculator->calculate($customer_address,$orderItems);
-        $order_no = "3";
+        $discount_amount = $this->customerDiscountCalculator->calculate($this->currentCustomer->get(), $orderItems);
+        $shipment_amount = $this->shipmentFeeCalculator->calculate($customer_address, $orderItems);
+        $order_no = $this->orderNoGenerator->generate();
         return \DB::transaction(function () use ($data, $order_no, $shipment_amount, $discount_amount, $orderItems, $customer_address) {
 
-            
+
 
             [$order, $items] = Order::placeNewOrder(
                 $this->currentCustomer->get()->id,
@@ -68,7 +69,7 @@ class OrderDomain
             $order->save();
             $order->orderItems()->saveMany($items);
             foreach ($items as  $value) {
-                $this->inventoryDomain->reserveForOrderItem($value->product_variant_id, $value->quantity,$value->id);
+                $this->inventoryDomain->reserveForOrderItem($value->product_variant_id, $value->quantity, $value->id);
             }
 
             event(new OrderPlaced($order));
@@ -76,5 +77,12 @@ class OrderDomain
         });
     }
 
-
+    public function markAsPaid(Order $order)
+    {
+        if ($order->payment_status === \App\Models\Order\OrderPaymentStatus::PAID) {
+            throw new \DomainException('Order is already paid.');
+        }
+   
+        $order->pay();
+    }
 }

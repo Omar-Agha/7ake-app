@@ -6,6 +6,8 @@ use App\Models\Catalog\ProductVariant;
 use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerAddress;
 use App\Models\Inventory\Reservation;
+use App\Models\Payment\Payment;
+use App\Models\Payment\PaymentStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -46,7 +48,7 @@ class Order extends Model
      */
     protected $casts = [
         'status' => OrderStatus::class,
-        'payment_status' => PaymentStatus::class,
+        'payment_status' => OrderPaymentStatus::class,
         'payment_method' => PaymentMethod::class,
         'sub_total' => 'float',
         'shipping_amount' => 'float',
@@ -94,6 +96,11 @@ class Order extends Model
         )->select('reservations.*'); // Avoid ambiguous "id" columns
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     /**
      * Create a new Order instance.
      *
@@ -124,7 +131,7 @@ class Order extends Model
             'customer_id' => $customer_id,
             'order_number' => $order_no,
             'status' => OrderStatus::PENDING,
-            'payment_status' => PaymentStatus::UNPAID,
+            'payment_status' => OrderPaymentStatus::UNPAID,
             'payment_method' => $payment_method,
             'shipping_amount' => $shipping_amount,
             'discount_amount' => $discount_amount,
@@ -162,5 +169,9 @@ class Order extends Model
     {
         $this->status = OrderStatus::SHIPPED;
         $this->delivered_at = $delivered_at;
+    }
+    public function pay(){
+        $this->payment_status = OrderPaymentStatus::PAID;
+        $this->paid_at = Carbon::now();
     }
 }
