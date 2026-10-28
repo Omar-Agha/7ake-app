@@ -2,6 +2,7 @@
 
 namespace App\Models\Catalog;
 
+use App\Enums\PublishStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductCollection extends Model
@@ -36,5 +37,14 @@ class ProductCollection extends Model
     {
         return $this->belongsToMany(Product::class);
     }
+    public function publish() {
+        $this->status = PublishStatus::Published;
+    }
 
+    public function archive() {
+        $this->status = PublishStatus::Archived;
+    }
+    public function unarchive() {
+        $this->status = PublishStatus::Published;
+    }
 }
