@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Catalog\Products\RelationManagers;
 use App\Core\Product\ProductDomain;
 use App\Enums\ProductSize;
 use App\Models\Catalog\Color;
+use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductVariant;
 use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
@@ -18,6 +19,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -41,10 +43,21 @@ class VariantsRelationManager extends RelationManager
                         Action::make('generateName')
                             ->icon('heroicon-m-sparkles')
                             ->tooltip('Generate random name')
-                            ->action(function (Set $set, ProductVariant $record, ProductDomain $domain, Get $get) {
+                            ->action(function (Set $set,Get $get, ProductDomain $domain) {
+                                if (! $get('color_id')) {
+                                    Notification::make()
+                                        ->title('Color Required')
+                                        ->body('Please select a color first before generating a name.')
+                                        ->warning() // Optional: Makes it red/error styled
+                                        ->send();
+                                    
+                                    return; // Stop execution if needed
+                                }
                                 // Your generation logic here (e.g., random string, service call, etc.)
                                 $color = Color::find($get('color_id'));
-                                $set('name', $domain->generateVariantName($record, $color));
+                                $size = $get('product_size');
+
+                                $set('name', $domain->generateVariantName($size,$color));
                             })
                     ),
                 TextInput::make('price')
@@ -54,7 +67,31 @@ class VariantsRelationManager extends RelationManager
                     ->minValue(0.01)
                     ->prefix('$'),
                 TextInput::make('sku')
-                    ->label('SKU'),
+                    ->label('SKU')
+                    ->unique()
+                    ->required()
+                    ->suffixAction(
+                        Action::make('generateSku')
+                            ->icon('heroicon-m-sparkles')
+                            ->tooltip('Generate random name')
+                            ->action(function (Set $set, Get $get, ProductDomain $domain) {
+                                // Your generation logic here (e.g., random string, service call, etc.)
+                                if (! $get('color_id')) {
+                                    Notification::make()
+                                        ->title('Color Required')
+                                        ->body('Please select a color first before generating a name.')
+                                        ->warning() // Optional: Makes it red/error styled
+                                        ->send();
+                                    
+                                    return; // Stop execution if needed
+                                }
+
+                                $color = Color::find($get('color_id'));
+                                $size = $get('product_size');
+                                $product = Product::find($this->getOwnerRecord()->getKey());
+                                $set('sku', $domain->generateSkuCode($size, $product, $color));
+                            })
+                    ),
 
                 Select::make('color_id')
                     ->live()

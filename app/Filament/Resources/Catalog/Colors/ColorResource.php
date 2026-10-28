@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -65,7 +66,20 @@ class ColorResource extends Resource
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->before(function (DeleteAction $action, Color $record) {
+                        // Check if products exist before letting the modal proceed
+                        if ($record->productVariants()->exists()) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Deletion Blocked')
+                                ->body('This category cannot be deleted because it has active products.')
+                                ->send();
+
+                            // Halts the deletion process
+                            $action->halt();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

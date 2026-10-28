@@ -52,7 +52,7 @@ class Product extends Model
      */
     public function productCollections(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(ProductCollection::class);
+        return $this->belongsToMany(ProductCollection::class,'product_collection_product');
     }
 
     /**

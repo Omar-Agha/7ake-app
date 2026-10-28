@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Contracts\Support\Htmlable;
 
-enum PublishStatus: int implements HasLabel,HasColor
+enum PublishStatus: int implements HasLabel, HasColor
 {
     case Draft = 1;
     case Published = 2;
@@ -23,7 +23,6 @@ enum PublishStatus: int implements HasLabel,HasColor
             self::Draft => 'gray',
             self::Archived => 'warning',
             self::Published => 'success',
-            
         };
     }
 }

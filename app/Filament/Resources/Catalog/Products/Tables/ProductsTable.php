@@ -6,6 +6,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -30,9 +31,15 @@ class ProductsTable
                     ->sortable(),
                 TextColumn::make('category.name')
                     ->searchable(),
+                TextColumn::make('productCollections.name')
+                    ->searchable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('productCollections')
+                ->relationship('productCollections', 'name')
+                // ->multiple() // Optional: Allow selecting multiple collections in the filter
+                // ->searchable() // Optional: Make the filter searchable
+                ->label('Collection'),
             ])
             ->recordActions([
                 EditAction::make(),
