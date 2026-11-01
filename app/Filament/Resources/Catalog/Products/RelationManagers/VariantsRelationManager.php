@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Catalog\Products\RelationManagers;
 
 use App\Core\Product\ProductDomain;
 use App\Enums\ProductSize;
+use App\Filament\Forms\Components\ImageGallery;
+use App\Filament\Tables\Columns\StackedImagesColumn;
 use App\Models\Catalog\Color;
 use App\Models\Catalog\Product;
 use App\Models\Catalog\ProductVariant;
@@ -26,6 +28,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class VariantsRelationManager extends RelationManager
@@ -43,21 +46,21 @@ class VariantsRelationManager extends RelationManager
                         Action::make('generateName')
                             ->icon('heroicon-m-sparkles')
                             ->tooltip('Generate random name')
-                            ->action(function (Set $set,Get $get, ProductDomain $domain) {
+                            ->action(function (Set $set, Get $get, ProductDomain $domain) {
                                 if (! $get('color_id')) {
                                     Notification::make()
                                         ->title('Color Required')
                                         ->body('Please select a color first before generating a name.')
                                         ->warning() // Optional: Makes it red/error styled
                                         ->send();
-                                    
+
                                     return; // Stop execution if needed
                                 }
                                 // Your generation logic here (e.g., random string, service call, etc.)
                                 $color = Color::find($get('color_id'));
                                 $size = $get('product_size');
 
-                                $set('name', $domain->generateVariantName($size,$color));
+                                $set('name', $domain->generateVariantName($size, $color));
                             })
                     ),
                 TextInput::make('price')
@@ -82,7 +85,7 @@ class VariantsRelationManager extends RelationManager
                                         ->body('Please select a color first before generating a name.')
                                         ->warning() // Optional: Makes it red/error styled
                                         ->send();
-                                    
+
                                     return; // Stop execution if needed
                                 }
 
@@ -107,12 +110,14 @@ class VariantsRelationManager extends RelationManager
                     ->default(ProductSize::Small)
                     ->selectablePlaceholder(false)
                     ->options(ProductSize::class),
+                ImageGallery::make(),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->withImages()
             ->recordTitleAttribute('sku')
             ->columns([
                 TextColumn::make('created_at')
@@ -127,6 +132,7 @@ class VariantsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
+                StackedImagesColumn::make(),
                 TextColumn::make('price')
                     ->money()
 

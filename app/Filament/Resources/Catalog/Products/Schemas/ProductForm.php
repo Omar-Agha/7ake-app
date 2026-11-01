@@ -3,9 +3,14 @@
 namespace App\Filament\Resources\Catalog\Products\Schemas;
 
 use App\Enums\PublishStatus;
+use App\Filament\Forms\Components\ImageGallery;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ProductForm
@@ -14,6 +19,7 @@ class ProductForm
     {
         return $schema
             ->components([
+
                 TextInput::make('name')
                     ->required(),
                 Textarea::make('description')
@@ -42,6 +48,8 @@ class ProductForm
                             ->disabled()
                             ->required(),
                     ]),
+                    ImageGallery::make(),
+               
             ]);
     }
 }

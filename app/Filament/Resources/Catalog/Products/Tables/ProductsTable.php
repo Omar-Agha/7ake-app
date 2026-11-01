@@ -2,9 +2,16 @@
 
 namespace App\Filament\Resources\Catalog\Products\Tables;
 
+use App\Enums\PublishStatus;
+use App\Filament\Resources\Catalog\Products\ProductResource;
+use App\Filament\Tables\Columns\StackedImagesColumn;
+use App\Models\Catalog\Product;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -14,6 +21,9 @@ class ProductsTable
     public static function configure(Table $table): Table
     {
         return $table
+        ->withImages()
+        
+
             ->columns([
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -25,6 +35,7 @@ class ProductsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
                     ->searchable(),
+                    StackedImagesColumn::make(),
                 TextColumn::make('product_status')
                     ->badge()
                     // ->numeric()
@@ -43,6 +54,12 @@ class ProductsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                ActionGroup::make([
+
+                    ...ProductResource::getRecordActions()
+
+                ]),
+
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

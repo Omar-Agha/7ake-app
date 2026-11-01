@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Catalog\Products;
 
+use App\Enums\PublishStatus;
 use App\Filament\Resources\Catalog\Products\Pages\CreateProduct;
 use App\Filament\Resources\Catalog\Products\Pages\EditProduct;
 use App\Filament\Resources\Catalog\Products\Pages\ListProducts;
@@ -10,6 +11,7 @@ use App\Filament\Resources\Catalog\Products\Schemas\ProductForm;
 use App\Filament\Resources\Catalog\Products\Tables\ProductsTable;
 use App\Models\Catalog\Product;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -37,6 +39,39 @@ class ProductResource extends Resource
     {
         return [
             VariantsRelationManager::class,
+        ];
+    }
+
+    public static function getRecordActions(): array
+    {
+        return [
+            Action::make("publish")
+                ->visible(fn(Product $record): bool => in_array($record->product_status, [PublishStatus::Draft]))
+
+                ->icon(Heroicon::PaperAirplane)
+                ->requiresConfirmation()
+                ->action(function (Product $record) {
+                    $record->publish();
+                    $record->save();
+                }),
+
+
+            Action::make("archive")
+                ->visible(fn(Product $record): bool => in_array($record->product_status, [PublishStatus::Published]))
+                ->icon(Heroicon::ArchiveBox)
+                ->requiresConfirmation()
+                ->action(function (Product $record) {
+                    $record->archive();
+                    $record->save();
+                }),
+            Action::make("unarchive")
+                ->visible(fn(Product $record): bool => in_array($record->product_status, [PublishStatus::Archived]))
+                ->icon(Heroicon::OutlinedArchiveBoxXMark)
+                ->requiresConfirmation()
+                ->action(function (Product $record) {
+                    $record->unarchive();
+                    $record->save();
+                }),
         ];
     }
 

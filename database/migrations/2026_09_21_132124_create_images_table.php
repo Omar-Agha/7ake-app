@@ -19,7 +19,8 @@ return new class extends Migration
             $table->string('path');
             $table->string('alt_text')->nullable();
             $table->string('tag')->nullable();
-   
+            $table->boolean('is_primary')->default(false);
+            $table->unsignedInteger('sort')->default(0); 
         });
     }
 

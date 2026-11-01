@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasImages
@@ -30,14 +31,31 @@ trait HasImages
     {
         return $this->morphMany(\App\Models\Image::class, 'imageable');
     }
-    /**
-     * Get an image by its tag.
-     *
-     * @param string $tag
-     * @return \App\Models\Image|null
-     */
+   
     public function getImageByTag(string $tag): ?\App\Models\Image
     {
         return $this->images()->where('tag', $tag)->first();
+    }
+
+    public function getPrimaryImageAttribute()
+    {
+        return $this->images()->where('is_primary', true)->first() 
+            ?? $this->images()->first();
+    }
+
+    /**
+     * Helper to attach a new image path.
+     */
+    public function addImage(string $path, bool $isPrimary = false): Model
+    {
+        if ($isPrimary) {
+            // Unset any existing primary images
+            $this->images()->update(['is_primary' => false]);
+        }
+
+        return $this->images()->create([
+            'path' => $path,
+            'is_primary' => $isPrimary || $this->images()->count() === 0,
+        ]);
     }
 }

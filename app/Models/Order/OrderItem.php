@@ -6,6 +6,38 @@ use App\Models\Catalog\ProductVariant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property int $order_id
+ * @property int $product_variant_id
+ * @property string $product_name
+ * @property int $quantity
+ * @property numeric $price
+ * @property numeric $total
+ * @property string|null $sku
+ * @property string $currency
+ * @property-read \App\Models\Order\Order $order
+ * @property-read ProductVariant $productVariant
+ * @property-read \App\Models\Inventory\Reservation|null $reservation
+ * @method static \Database\Factories\Order\OrderItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereCurrency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem wherePrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereProductName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereProductVariantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereSku($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class OrderItem extends Model
 {
     use HasFactory;

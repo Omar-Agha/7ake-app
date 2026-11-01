@@ -17,6 +17,58 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Ramsey\Collection\Collection;
 
+/**
+ * @property int $id
+ * @property \Carbon\CarbonImmutable|null $created_at
+ * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property int $customer_id
+ * @property string $order_number
+ * @property float $sub_total
+ * @property float $shipping_amount
+ * @property float $discount_amount
+ * @property float $total_amount
+ * @property string $currency
+ * @property array<array-key, mixed> $shipping_address
+ * @property \App\Models\Order\OrderStatus $status
+ * @property \App\Models\Order\PaymentMethod|null $payment_method
+ * @property \App\Models\Order\OrderPaymentStatus $payment_status
+ * @property string|null $cancelled_at
+ * @property string|null $confirmed_at
+ * @property string|null $shipping_at
+ * @property string|null $delivered_at
+ * @property-read Customer $customer
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order\OrderItem> $orderItems
+ * @property-read int|null $order_items_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Payment> $payments
+ * @property-read int|null $payments_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProductVariant> $productVariants
+ * @property-read int|null $product_variants_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Reservation> $reservations
+ * @property-read int|null $reservations_count
+ * @method static \Database\Factories\Order\OrderFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereConfirmedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCurrency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCustomerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDeliveredAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaymentMethod($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaymentStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereShippingAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereShippingAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereShippingAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotalAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Order extends Model
 {
 

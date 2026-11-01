@@ -14,6 +14,7 @@ class EditProduct extends EditRecord
     {
         return [
             DeleteAction::make(),
+            ...ProductResource::getRecordActions()
         ];
     }
 }
