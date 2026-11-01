@@ -13,6 +13,14 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/hi', function (Request $request) {
+    app()->setLocale('ar');
+    return Product::first()->name;
+    // $p = new Product();
+    // $p->setTranslation('name', 'en', 'Product 1');
+    // $p->setTranslation('name', 'ar', 'Product 1 ar');
+    // $p->setTranslation('description', 'en', 'Description 1');
+    // $p->setTranslation('description', 'ar', 'Description 1');
+    // return $p->save();
     return Product::withCount('productVariants')->get();
     
     
