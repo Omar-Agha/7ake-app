@@ -6,6 +6,7 @@ use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTab;
 use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
 use App\Enums\PublishStatus;
 use App\Filament\Forms\Components\ImageGallery;
+use App\Filament\Navigations\NavigationItems;
 use App\Filament\Resources\Catalog\ProductCollections\Pages\ManageProductCollections;
 use App\Filament\Tables\Columns\StackedImagesColumn;
 use App\Models\Catalog\ProductCollection;
@@ -31,14 +32,18 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ProductCollectionResource extends Resource
 {
     protected static ?string $model = ProductCollection::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    protected static string | UnitEnum | null $navigationGroup = NavigationItems::CATALOG_MENU_GROUP;
+
 
     public static function form(Schema $schema): Schema
     {

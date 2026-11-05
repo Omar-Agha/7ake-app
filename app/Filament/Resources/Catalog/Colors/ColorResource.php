@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Catalog\Colors;
 
+use App\Filament\Navigations\NavigationItems;
 use App\Filament\Resources\Catalog\Colors\Pages\ManageColors;
 use App\Models\Catalog\Color;
 use BackedEnum;
@@ -18,15 +19,16 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ColorResource extends Resource
 {
     protected static ?string $model = Color::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
 
     protected static ?string $recordTitleAttribute = 'name';
-
+    protected static string | UnitEnum | null $navigationGroup = NavigationItems::CATALOG_MENU_GROUP;
     public static function form(Schema $schema): Schema
     {
         return $schema

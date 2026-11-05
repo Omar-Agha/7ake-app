@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Catalog\Products;
 
 use App\Enums\PublishStatus;
+use App\Filament\Navigations\NavigationItems;
 use App\Filament\Resources\Catalog\Products\Pages\CreateProduct;
 use App\Filament\Resources\Catalog\Products\Pages\EditProduct;
 use App\Filament\Resources\Catalog\Products\Pages\ListProducts;
@@ -16,14 +17,17 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
 
     protected static ?string $recordTitleAttribute = 'name';
+    protected static string | UnitEnum | null $navigationGroup = NavigationItems::CATALOG_MENU_GROUP;
+
 
     public static function form(Schema $schema): Schema
     {

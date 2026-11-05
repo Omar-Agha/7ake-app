@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Catalog\Categories;
 
 use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
+use App\Filament\Navigations\NavigationItems;
 use App\Filament\Resources\Catalog\Categories\Pages\ManageCategories;
 use App\Models\Catalog\Category;
 use BackedEnum;
@@ -20,12 +21,18 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
+
+
+    protected static string | UnitEnum | null $navigationGroup = NavigationItems::CATALOG_MENU_GROUP;
+
+
 
     protected static ?string $recordTitleAttribute = 'name';
 
