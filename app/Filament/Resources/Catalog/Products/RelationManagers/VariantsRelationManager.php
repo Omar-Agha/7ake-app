@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Catalog\Products\RelationManagers;
 use App\Core\Product\ProductDomain;
 use App\Enums\ProductSize;
 use App\Filament\Forms\Components\ImageGallery;
+use App\Filament\Resources\Catalog\Colors\ColorResource;
 use App\Filament\Tables\Columns\StackedImagesColumn;
 use App\Models\Catalog\Color;
 use App\Models\Catalog\Product;
@@ -100,11 +101,7 @@ class VariantsRelationManager extends RelationManager
                     ->live()
                     ->required()
                     ->relationship('color', 'name')
-                    ->createOptionForm([
-                        TextInput::make('name')->required()->maxLength(255),
-                        TextInput::make('code')->required()->maxLength(255),
-                        ColorPicker::make('hex_code')->required(),
-                    ]),
+                    ->createOptionForm([...ColorResource::formFields()]),
                 Select::make('product_size')
                     ->required()
                     ->default(ProductSize::Small)

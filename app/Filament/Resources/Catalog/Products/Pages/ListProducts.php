@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Catalog\Products\Pages;
 
 use App\Filament\Resources\Catalog\Products\ProductResource;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
@@ -14,6 +15,7 @@ class ListProducts extends ListRecords
     {
         return [
             CreateAction::make(),
+            
         ];
     }
 }

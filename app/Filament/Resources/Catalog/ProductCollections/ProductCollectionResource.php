@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Catalog\ProductCollections;
 
+use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTab;
+use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
 use App\Enums\PublishStatus;
 use App\Filament\Forms\Components\ImageGallery;
 use App\Filament\Resources\Catalog\ProductCollections\Pages\ManageProductCollections;
@@ -18,8 +20,10 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -39,18 +43,24 @@ class ProductCollectionResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->components([...static::formFields()]);
+    }
+    public static function formFields(): array
+    {
+        return [
+            TranslatableTabs::make('')->schema([
                 TextInput::make('name')
                     ->required(),
                 Textarea::make('description')
                     ->columnSpanFull(),
-                    ImageGallery::make(),
-                Select::make('status')
-                    ->options(PublishStatus::class)
-                    ->default(PublishStatus::Draft)
-                    ->disabled()
-                    ->required(),
-            ]);
+            ])->columnSpanFull(),
+            ImageGallery::make(),
+            Select::make('status')
+                ->options(PublishStatus::class)
+                ->default(PublishStatus::Draft)
+                ->disabled()
+                ->required(),
+        ];
     }
 
     public static function table(Table $table): Table
@@ -68,8 +78,14 @@ class ProductCollectionResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->bilingual(),
                 StackedImagesColumn::make(),
+                TextColumn::make('description')
+                    ->searchable()
+
+                    ->bilingual(8),
+
                 TextColumn::make('status')
                     ->badge()
 
@@ -110,14 +126,19 @@ class ProductCollectionResource extends Resource
                     ->icon(Heroicon::PaperAirplane)
                     // 1. Add a form to the action to pop up in the modal
                     ->schema([
+                        Toggle::make('is_immediate_publish')
+                            ->default(false)
+                            ->live(),
                         DateTimePicker::make('publish_at')
                             ->label('Publish At')
-                            ->required()
+                            ->required(fn(Get $get): bool => ! $get('is_immediate_publish'))
                             ->default(now())
+                            ->disabled(fn(Get $get): bool => (bool) $get('is_immediate_publish'))
                             ->suffixAction(
                                 Action::make('setNow')
                                     ->icon('heroicon-m-clock')
                                     ->tooltip('Set to Now')
+                                    ->disabled(fn(Get $get): bool => (bool) $get('is_immediate_publish'))
                                     ->action(fn(Set $set) => $set('publish_at', now()))
                             ),
                     ])
@@ -126,7 +147,14 @@ class ProductCollectionResource extends Resource
                         // Assign the selected date from the modal form data
 
                         // Call your publish logic and save
-                        $record->publish($data['publish_at']);
+                        $is_immediate = $data['is_immediate_publish'] ?? false;
+                        if ($is_immediate) {
+                            $record->immediatePublish();
+                        } else {
+                            $publishAt = $data['publish_at'] ?? now();
+                            $record->futurePublish($publishAt);
+                        }
+
                         $record->save();
 
                         Notification::make()

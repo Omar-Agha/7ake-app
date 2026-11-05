@@ -21,8 +21,8 @@ class ProductsTable
     public static function configure(Table $table): Table
     {
         return $table
-        ->withImages()
-        
+            ->withImages()
+
 
             ->columns([
                 TextColumn::make('created_at')
@@ -34,8 +34,9 @@ class ProductsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
+                    ->bilingual()
                     ->searchable(),
-                    StackedImagesColumn::make(),
+                StackedImagesColumn::make(),
                 TextColumn::make('product_status')
                     ->badge()
                     // ->numeric()
@@ -47,10 +48,10 @@ class ProductsTable
             ])
             ->filters([
                 SelectFilter::make('productCollections')
-                ->relationship('productCollections', 'name')
-                // ->multiple() // Optional: Allow selecting multiple collections in the filter
-                // ->searchable() // Optional: Make the filter searchable
-                ->label('Collection'),
+                    ->relationship('productCollections', 'name')
+                    // ->multiple() // Optional: Allow selecting multiple collections in the filter
+                    // ->searchable() // Optional: Make the filter searchable
+                    ->label('Collection'),
             ])
             ->recordActions([
                 EditAction::make(),

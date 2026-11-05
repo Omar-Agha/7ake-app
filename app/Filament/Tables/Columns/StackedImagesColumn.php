@@ -11,7 +11,7 @@ class StackedImagesColumn
     {
         return ImageColumn::make($name)
             ->label($label)
-            ->circular()
+            // ->circular()
             ->stacked()
             ->limit(3)
             ->limitedRemainingText(size: 'xs')

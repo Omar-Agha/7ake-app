@@ -30,14 +30,18 @@ class ColorResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('code')
-                    ->required(),
-                ColorPicker::make('hex_code')->required()
+            ->components([...static::formFields()]);
+    }
 
-            ]);
+    public static function formFields(): array
+    {
+        return [
+            TextInput::make('name')
+                ->required(),
+            TextInput::make('code')
+                ->required(),
+            ColorPicker::make('hex_code')->required()
+        ];
     }
 
     public static function table(Table $table): Table

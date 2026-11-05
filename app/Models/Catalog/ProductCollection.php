@@ -7,6 +7,8 @@ use App\Traits\HasImages;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\Attributes\Translatable;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
@@ -30,9 +32,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductCollection whereUpdatedAt($value)
  * @mixin \Eloquent
  */
+#[Translatable('name', 'description')]
 class ProductCollection extends Model
 {
-    use HasImages;
+    use HasImages, HasTranslations;
     /**
      * The attributes that are mass assignable.
      *
@@ -65,9 +68,14 @@ class ProductCollection extends Model
     {
         return $this->belongsToMany(Product::class, 'product_collection_product');
     }
-    public function publish(DateTimeInterface|string $time): void
+    public function immediatePublish(): void
     {
+
         $this->status = PublishStatus::Published;
+        $this->published_at = now();
+    }
+    public function futurePublish(DateTimeInterface|string $time): void
+    {
         $this->published_at = $time;
     }
 

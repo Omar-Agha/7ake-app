@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Catalog\Categories;
 
+use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
 use App\Filament\Resources\Catalog\Categories\Pages\ManageCategories;
 use App\Models\Catalog\Category;
 use BackedEnum;
@@ -31,21 +32,29 @@ class CategoryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->components([...static::formFields()]);
+    }
+
+    public static function formFields(): array
+    {
+        return [
+            TranslatableTabs::make('')->schema([
                 TextInput::make('name')
                     ->live(onBlur: true) // Makes it reactive (updates on blur or instantly if you remove onBlur: true)
                     ->afterStateUpdated(fn(Set $set, ?string $state) => $set('slug', Str::slug($state)))
                     ->required(),
-                TextInput::make('slug')
-                    ->required()
-                    ->readOnly()
-                    ->maxLength(255)
-                    ->unique(ignoreRecord: true),
-
 
                 Textarea::make('description')
                     ->columnSpanFull(),
-            ]);
+            ])->columnSpanFull(),
+            TextInput::make('slug')
+                ->required()
+                ->readOnly()
+                ->maxLength(255)
+                ->unique(ignoreRecord: true),
+
+
+        ];
     }
 
     public static function table(Table $table): Table
@@ -62,9 +71,15 @@ class CategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->bilingual(),
                 TextColumn::make('slug')
                     ->searchable(),
+
+                TextColumn::make('description')
+                    ->searchable()
+                    ->bilingual()
+                    ->words(8),
             ])
             ->filters([
                 //

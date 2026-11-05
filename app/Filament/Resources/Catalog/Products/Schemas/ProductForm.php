@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\Catalog\Products\Schemas;
 
+use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
 use App\Enums\PublishStatus;
 use App\Filament\Forms\Components\ImageGallery;
+use App\Filament\Resources\Catalog\Categories\CategoryResource;
+use App\Filament\Resources\Catalog\ProductCollections\ProductCollectionResource;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -19,37 +22,32 @@ class ProductForm
     {
         return $schema
             ->components([
+                TranslatableTabs::make('')->schema([
+                    TextInput::make('name')
+                        ->required(),
 
-                TextInput::make('name')
-                    ->required(),
-                Textarea::make('description')
-                    ->columnSpanFull(),
+                    Textarea::make('description')
+                        ->columnSpanFull(),
+                ])->columnSpanFull(),
                 Select::make('product_status')
                     ->options(PublishStatus::class)
                     ->default(PublishStatus::Draft)
                     ->disabled()
                     ->required(),
                 Select::make('category_id')
-                    ->relationship('category', 'name'),
+                    ->relationship('category', 'name')
+                    ->createOptionForm([
+                        ...CategoryResource::formFields()
+                    ]),
 
                 Select::make('productCollections')
                     ->relationship('productCollections', 'name') // First arg is the relationship name, second is the column to display
                     ->multiple() // Enables multi-choice selection
                     ->preload()  // Optional: Loads options ahead of time for a smoother UX
                     ->searchable()
-                    ->createOptionForm([
-                        TextInput::make('name')
-                            ->required(),
-                        Textarea::make('description')
-                            ->columnSpanFull(),
-                        Select::make('status')
-                            ->options(PublishStatus::class)
-                            ->default(PublishStatus::Draft)
-                            ->disabled()
-                            ->required(),
-                    ]),
-                    ImageGallery::make(),
-               
+                    ->createOptionForm([...ProductCollectionResource::formFields()]),
+                ImageGallery::make(),
+
             ]);
     }
 }

@@ -4,6 +4,9 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Translatable\Attributes\Translatable;
+use Spatie\Translatable\HasTranslations;
+
 /**
  * @property int $id
  * @property \Carbon\CarbonImmutable|null $created_at
@@ -25,9 +28,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereUpdatedAt($value)
  * @mixin \Eloquent
  */
+#[Translatable('name','description')]
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory,HasTranslations;
     /**
      * The attributes that are mass assignable.
      *
@@ -45,6 +49,7 @@ class Category extends Model
      */
     public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
+        
         return $this->hasMany(Product::class);
     }
 }
