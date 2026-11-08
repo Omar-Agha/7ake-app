@@ -47,7 +47,7 @@ use Spatie\Translatable\HasTranslations;
 #[Translatable(['name', 'description'])]
 class Product extends Model
 {
-    use HasFactory,HasTranslations;
+    use HasFactory, HasTranslations;
     use \App\Traits\HasImages;
 
     /**
@@ -89,7 +89,7 @@ class Product extends Model
      */
     public function productCollections(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(ProductCollection::class,'product_collection_product');
+        return $this->belongsToMany(ProductCollection::class, 'product_collection_product')->select('product_collections.*');
     }
 
     /**
@@ -102,7 +102,7 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class)
             ->with('inventory');
     }
-   
+
     /**
      * Mark the product as the given status.
      *
@@ -115,15 +115,18 @@ class Product extends Model
         $this->save();
     }
 
-    public function publish(){
+    public function publish()
+    {
         $this->product_status = PublishStatus::Published;
         $this->save();
     }
-    public function archive(){
+    public function archive()
+    {
         $this->product_status = PublishStatus::Archived;
         $this->save();
     }
-    public function unarchive(){
+    public function unarchive()
+    {
         $this->product_status = PublishStatus::Published;
         $this->save();
     }

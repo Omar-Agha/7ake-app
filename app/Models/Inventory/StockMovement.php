@@ -66,15 +66,14 @@ class StockMovement extends Model
         'movement_type' => 'string',
     ];
 
-    /**
-     * Get the product variant this inventory movement belongs to.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
+    public function inventoryItem(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Inventory\InventoryItem::class, 'inventory_item_id');
+    }
+
+
     public function productVariant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\App\Models\Catalog\ProductVariant::class, 'product_variant_id');
     }
-
-    
 }

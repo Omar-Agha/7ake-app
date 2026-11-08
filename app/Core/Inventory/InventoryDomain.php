@@ -175,14 +175,14 @@ class InventoryDomain
         );
     }
 
-    public function moveStock(int $product_variant_id, int $quantity, StockMovementReason $reason): bool
+    public function moveStock(int $product_variant_id, int $quantity, StockMovementReason $reason): StockMovement
     {
         return \DB::transaction(function () use ($product_variant_id, $quantity, $reason) {
             $inventoryItem = InventoryItem::firstOrCreate(
                 ['product_variant_id' => $product_variant_id],
             );
             if ($inventoryItem->available_quantity + $quantity < 0) {
-                throw new \DomainException('Inventory quantity cannot be negative.');
+                throw new \DomainException(__('app.inventory.errors.insufficient_stock'));
             }
 
             // Update the inventory item's quantity
@@ -197,20 +197,18 @@ class InventoryDomain
 
 
             if ($affected == 0) {
-                throw new \DomainException('Inventory quantity cannot be negative.');
+                throw new \DomainException(__('app.inventory.errors.insufficient_stock'));
             }
 
             $inventoryItem->refresh();
 
             // Create a stock movement record
-            \App\Models\Inventory\StockMovement::create([
+            return \App\Models\Inventory\StockMovement::create([
                 'inventory_item_id' => $inventoryItem->id,
                 'quantity' => $quantity,
                 'reason' => $reason,
                 // Add referenceable fields if context is available, else leave blank or null
             ]);
-
-            return true;
         });
     }
 }

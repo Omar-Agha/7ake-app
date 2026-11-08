@@ -30,7 +30,7 @@ class ProductDomain
             ->orWhere('reserved_quantity', '>', 0)->exists()
         ) {
             // throw new \DomainException("Cannot delete product variant with existing inventory items. Please settle inventory before deleting the product variant.");
-            throw new \DomainException(__("app.product.delete_product_variant_with_inventory"));
+            throw new \DomainException(__("app.product.errors.delete_product_variant_with_inventory"));
         }
         $productVariant->delete();
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Inventory\InventoryItems;
 
+use App\Filament\Navigations\NavigationItems;
 use App\Filament\Resources\Inventory\InventoryItems\Pages\CreateInventoryItem;
 use App\Filament\Resources\Inventory\InventoryItems\Pages\EditInventoryItem;
 use App\Filament\Resources\Inventory\InventoryItems\Pages\ListInventoryItems;
@@ -13,14 +14,18 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class InventoryItemResource extends Resource
 {
     protected static ?string $model = InventoryItem::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
     protected static ?string $recordTitleAttribute = 'productVariant.product.name';
+
+    protected static string | UnitEnum | null $navigationGroup = NavigationItems::INVENTORY_MENU_GROUP;
+
 
     public static function form(Schema $schema): Schema
     {

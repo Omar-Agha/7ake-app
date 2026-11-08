@@ -14,7 +14,7 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/hi', function (Request $request) {
     app()->setLocale('ar');
-    return Product::first()->name;
+    return Product::with('productCollections')->get();
     // $p = new Product();
     // $p->setTranslation('name', 'en', 'Product 1');
     // $p->setTranslation('name', 'ar', 'Product 1 ar');
@@ -22,7 +22,4 @@ Route::get('/hi', function (Request $request) {
     // $p->setTranslation('description', 'ar', 'Description 1');
     // return $p->save();
     return Product::withCount('productVariants')->get();
-    
-    
-
 });
