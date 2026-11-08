@@ -4,6 +4,8 @@ namespace App\Models\Inventory;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 /**
  * @property int $id
  * @property \Carbon\CarbonImmutable|null $created_at
@@ -36,7 +38,9 @@ class InventoryItem extends Model
      */
     protected $fillable = [
         // Add your attributes here, for example:
-        'quantity','product_variant_id','reserved_quantity'//, 'location'
+        'quantity',
+        'product_variant_id',
+        'reserved_quantity' //, 'location'
     ];
     /**
      * Get the available quantity (quantity - reserved_quantity).
@@ -57,6 +61,9 @@ class InventoryItem extends Model
     {
         return $this->hasMany(\App\Models\Inventory\Reservation::class, 'inventory_item_id');
     }
-    
-    
+
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Catalog\ProductVariant::class, 'product_variant_id');
+    }
 }

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
+use App\Models\Catalog\ProductVariant;
+use App\Observers\ProductVariantObserver;
 use App\Support\Macros\TextColumnMixin;
 use Carbon\CarbonImmutable;
 use Filament\Tables\Columns\TextColumn;
@@ -36,6 +38,8 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureTranslations();
         $this->configureMacros();
+
+        ProductVariant::observe(ProductVariantObserver::class);
     }
     protected function configureMacros(): void
     {

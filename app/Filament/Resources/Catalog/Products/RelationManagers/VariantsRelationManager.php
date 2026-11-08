@@ -31,6 +31,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Throwable;
 
 class VariantsRelationManager extends RelationManager
 {
@@ -154,7 +155,20 @@ class VariantsRelationManager extends RelationManager
             ->recordActions([
                 EditAction::make(),
 
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->action(function (ProductVariant $record, ProductDomain $domain, DeleteAction $action): void {
+
+                        try {
+                            $domain->deleteProductVariant($record);
+                        } catch (Throwable $exception) {
+                            Notification::make()
+                                ->title('Unable to delete product variant')
+                                ->body($exception->getMessage())
+                                ->danger()
+                                ->send();
+                            $action->halt();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

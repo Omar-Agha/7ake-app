@@ -167,6 +167,14 @@ class InventoryDomain
         }
     }
 
+    public function initializeInventoryForProductVariant(int $product_variant_id): InventoryItem
+    {
+        return InventoryItem::firstOrCreate(
+            ['product_variant_id' => $product_variant_id],
+            ['quantity' => 0, 'reserved_quantity' => 0]
+        );
+    }
+
     public function moveStock(int $product_variant_id, int $quantity, StockMovementReason $reason): bool
     {
         return \DB::transaction(function () use ($product_variant_id, $quantity, $reason) {
