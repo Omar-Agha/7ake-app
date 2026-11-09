@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use AbdulmajeedJamaan\FilamentTranslatableTabs\TranslatableTabs;
+use App\Core\Cart\CurrentGuestToken;
 use App\Models\Catalog\ProductVariant;
 use App\Observers\ProductVariantObserver;
 use App\Support\Macros\TextColumnMixin;
@@ -25,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(
             \App\Core\Customer\CurrentCustomer::class,
             fn() => new \App\Core\Customer\CurrentCustomer()
+        );
+        $this->app->scoped(
+            CurrentGuestToken::class,
+            fn() => new CurrentGuestToken(request())
         );
     }
 

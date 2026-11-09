@@ -32,16 +32,16 @@ class CartService
     {
 
         $cart = Cart::whereCustomerId($customer->id)->first();
-        if($cart) {
+        if ($cart) {
             return $cart;
         }
-        $cart = Cart::where('guest_token',$guestToken)->first();
-        if($cart) {
+        $cart = Cart::where('guest_token', $guestToken)->first();
+        if ($cart) {
             $cart->customer()->associate($customer);
             $cart->save();
             return $cart;
         }
-        return Cart::create(['customer_id'=>$customer->id]);
+        return Cart::create(['customer_id' => $customer->id]);
     }
 
 
@@ -56,7 +56,7 @@ class CartService
     }
 
 
-    public function addOrUpdateCartItem(Cart $cart, ProductVariant $variant, int $quantity, float $price): CartItem
+    public function addOrUpdateCartItem(Cart $cart, ProductVariant $variant, int $quantity): CartItem
     {
         // Use firstOrCreate to respect the unique constraint
         $cartItem = $cart->cartItems()->firstOrCreate(
@@ -69,9 +69,9 @@ class CartService
     }
 
 
-    public function removeCartItem(Cart $cart, ProductVariant $variant): ?bool
+    public function removeCartItem(Cart $cart, int $variant): ?bool
     {
-        $cartItem = $cart->cartItems()->where('product_variant_id', $variant->id)->first();
+        $cartItem = $cart->cartItems()->where('product_variant_id', $variant)->first();
 
         if ($cartItem) {
             return $cartItem->delete();

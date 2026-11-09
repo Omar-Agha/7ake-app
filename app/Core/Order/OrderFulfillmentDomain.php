@@ -10,6 +10,7 @@ use App\Events\OrderWasShipped;
 use App\Models\Order\Order;
 use App\Models\Order\OrderStatus;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class OrderFulfillmentDomain
 {
@@ -22,24 +23,29 @@ class OrderFulfillmentDomain
         // Inject dependencies here if needed in future (e.g., repositories, services).
     }
 
-
     public function confirmOrder(Order $order): void
     {
-        if ($order->status !== OrderStatus::PENDING) {
-            throw new \DomainException("order Cannot be confirmed");
-        }
-        
-        $order->confirm(Carbon::now());
-        $order->save();
-        event(new OrderWasConfirmed($order));
+        DB::transaction(function () use ($order): void {
+            $currentOrder = Order::query()->lockForUpdate()->findOrFail($order->getKey());
+
+            if (! in_array((string) $currentOrder->getRawOriginal('status'), [(string) OrderStatus::PENDING->value, 'pending'], true)) {
+                throw new \DomainException('Only pending orders can be confirmed.');
+            }
+
+            $currentOrder->confirm(Carbon::now());
+            $currentOrder->save();
+            event(new OrderWasConfirmed($currentOrder));
+        });
+        $order->refresh();
     }
+
     public function cancelOrder(Order $order): void
     {
         if ($order->status !== OrderStatus::PENDING && $order->status != OrderStatus::CONFIRMED) {
-   
-            throw new \DomainException("order Cannot be confirmed");
+
+            throw new \DomainException('order Cannot be confirmed');
         }
-        $order->load(["reservations", "orderItems"]);
+        $order->load(['reservations', 'orderItems']);
         // some business validation
         \DB::transaction(function () use ($order) {
             $order->cancel(Carbon::now());
@@ -51,11 +57,13 @@ class OrderFulfillmentDomain
         });
         event(new OrderWasCancelled($order));
     }
-    public function shipOrder(Order $order): void {
+
+    public function shipOrder(Order $order): void
+    {
         if ($order->status !== OrderStatus::CONFIRMED) {
-            throw new \DomainException("order cannot be shipped");
+            throw new \DomainException('order cannot be shipped');
         }
-        $order->load(["reservations", "orderItems"]);
+        $order->load(['reservations', 'orderItems']);
 
         \DB::transaction(function () use ($order) {
             $order->shipping(Carbon::now());
@@ -72,12 +80,20 @@ class OrderFulfillmentDomain
         event(new OrderWasShipped($order));
 
     }
-    public function deliverOrder(Order $order): void {
-        if ($order->status !== OrderStatus::SHIPPED) {
-            throw new \DomainException("order cannot be delivered");
-        }
-        $order->deliver(Carbon::now());
-        $order->save();
-        event(new OrderWasDelivered($order));
+
+    public function deliverOrder(Order $order): void
+    {
+        DB::transaction(function () use ($order): void {
+            $currentOrder = Order::query()->lockForUpdate()->findOrFail($order->getKey());
+
+            if (! in_array((string) $currentOrder->getRawOriginal('status'), [(string) OrderStatus::SHIPPED->value, 'shipped'], true)) {
+                throw new \DomainException('Only shipped orders can be delivered.');
+            }
+
+            $currentOrder->deliver(Carbon::now());
+            $currentOrder->save();
+            event(new OrderWasDelivered($currentOrder));
+        });
+        $order->refresh();
     }
 }

@@ -7,26 +7,29 @@ use App\Http\Requests\CustomerSaveRequest;
 use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerAddress;
 use Auth;
+use Illuminate\Http\UploadedFile;
 
 class CustomerService
 {
-    /**
-     * Create a new customer.
-     *
-     * @param \App\Http\Requests\CustomerSaveRequest $request
-     * @return \App\Models\Customer\Customer
-     */
-    public function create(CustomerSaveRequest $request): \App\Models\Customer\Customer
-    {
-        $data = $request->validated();
 
-        
-        $data['user_id'] = Auth::user()->id;
+    public function create(string $f_name, string $l_name, ?string $phone, string $email, int $user_id, ?UploadedFile $avatar = null): \App\Models\Customer\Customer
+    {
+        $data = [
+            'f_name' => $f_name,
+            'l_name' => $l_name,
+            'phone' => $phone,
+            'email' => $email,
+            'avatar' => $avatar,
+            'user_id' => $user_id,
+        ];
+
+
+
 
         // If avatar is uploaded, handle file upload (if required by your business logic)
-        if ($request->hasFile('avatar')) {
+        if ($avatar) {
             $uploader = app(\App\Core\FileUploader::class);
-            $data['avatar'] = $uploader->uploadFile($request->file('avatar'), 'avatars');
+            $data['avatar'] = $uploader->uploadFile($avatar, 'avatars');
         }
 
         return \App\Models\Customer\Customer::create($data);

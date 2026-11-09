@@ -7,20 +7,18 @@ use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerAddress;
 use App\Models\Inventory\Reservation;
 use App\Models\Payment\Payment;
-use App\Models\Payment\PaymentStatus;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Ramsey\Collection\Collection;
 
 /**
  * @property int $id
- * @property \Carbon\CarbonImmutable|null $created_at
- * @property \Carbon\CarbonImmutable|null $updated_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  * @property int $customer_id
  * @property string $order_number
  * @property float $sub_total
@@ -29,15 +27,15 @@ use Ramsey\Collection\Collection;
  * @property float $total_amount
  * @property string $currency
  * @property array<array-key, mixed> $shipping_address
- * @property \App\Models\Order\OrderStatus $status
- * @property \App\Models\Order\PaymentMethod|null $payment_method
- * @property \App\Models\Order\OrderPaymentStatus $payment_status
+ * @property OrderStatus $status
+ * @property PaymentMethod|null $payment_method
+ * @property OrderPaymentStatus $payment_status
  * @property string|null $cancelled_at
  * @property string|null $confirmed_at
  * @property string|null $shipping_at
  * @property string|null $delivered_at
  * @property-read Customer $customer
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order\OrderItem> $orderItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, OrderItem> $orderItems
  * @property-read int|null $order_items_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Payment> $payments
  * @property-read int|null $payments_count
@@ -45,6 +43,7 @@ use Ramsey\Collection\Collection;
  * @property-read int|null $product_variants_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Reservation> $reservations
  * @property-read int|null $reservations_count
+ *
  * @method static \Database\Factories\Order\OrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
@@ -67,12 +66,13 @@ use Ramsey\Collection\Collection;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotalAmount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class Order extends Model
 {
-
     use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -90,9 +90,10 @@ class Order extends Model
         'shipping_address',
         'status',
         'payment_method',
-        'payment_status'
+        'payment_status',
 
     ];
+
     /**
      * The attributes that should be cast.
      *
@@ -124,10 +125,11 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
     /**
      * Get all product variants for the order (through order items), eager loading their related product.
      */
-    public function productVariants(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    public function productVariants(): HasManyThrough
     {
         return $this->hasManyThrough(
             ProductVariant::class,
@@ -135,7 +137,6 @@ class Order extends Model
         )->with('product');
     }
 
-   
     public function reservations(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -156,13 +157,12 @@ class Order extends Model
     /**
      * Create a new Order instance.
      *
-     * @param array $attributes
+     * @param  array  $attributes
      */
     /**
      * Place a new order with the provided attributes.
      *
-     * @param array $attributes
-     
+     * @param  array  $attributes
      */
     public static function placeNewOrder(
         int $customer_id,
@@ -176,7 +176,7 @@ class Order extends Model
 
         $sub_total = collect($orderItems)->sum(function (OrderItem $orderItem) {
 
-            return $orderItem->price  * $orderItem->quantity;
+            return $orderItem->price * $orderItem->quantity;
         });
 
         $attributes = [
@@ -199,30 +199,33 @@ class Order extends Model
 
     /**
      * Cancel the order and update related reservations.
-     *
-     * @return void
      */
     public function cancel(\DateTimeInterface $cancelledAt): void
     {
         $this->status = OrderStatus::CANCELLED;
         $this->cancelled_at = $cancelledAt;
     }
+
     public function confirm(\DateTimeInterface $confirmedAt): void
     {
         $this->status = OrderStatus::CONFIRMED;
         $this->confirmed_at = $confirmedAt;
     }
+
     public function shipping(\DateTimeInterface $shipping_at): void
     {
         $this->status = OrderStatus::SHIPPED;
         $this->shipping_at = $shipping_at;
     }
+
     public function deliver(\DateTimeInterface $delivered_at): void
     {
-        $this->status = OrderStatus::SHIPPED;
+        $this->status = OrderStatus::DELIVERED;
         $this->delivered_at = $delivered_at;
     }
-    public function pay(){
+
+    public function pay()
+    {
         $this->payment_status = OrderPaymentStatus::PAID;
         $this->paid_at = Carbon::now();
     }

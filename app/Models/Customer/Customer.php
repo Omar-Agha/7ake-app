@@ -63,6 +63,11 @@ class Customer extends Model
     }
 
 
+    public function fullName(): string
+    {
+        return trim("{$this->f_name} {$this->l_name}");
+    }
+
     /**
      * Get the user that owns the customer.
      */
